@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تبدیل عدد به حروف (فارسی)</title>
+<style>
+:root{--bg:#f7f9fc;--card:#ffffff;--accent:#7c3aed;--muted:#64748b}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial; background:var(--bg); color:#0f172a; margin:0; padding:28px; min-height:100vh; display:flex; align-items:center; justify-content:center}
+.container{width:100%;max-width:860px}
+.card{background:var(--card);border-radius:12px;padding:22px;box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+.header{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#06b6d4);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+.title{font-size:20px}
+.form{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+input[type="text"]{flex:1;padding:12px;border-radius:8px;border:1px solid #e6eef6;font-size:16px}
+.btn{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:700;background:linear-gradient(90deg,var(--accent),#06b6d4);color:#041028}
+.secondary{background:#334155;color:white}
+.result{margin-top:18px;padding:14px;border-radius:10px;background:#0f172a;color:#e6eef6;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.res-text{font-size:18px;line-height:1.4}
+.small{color:var(--muted);font-size:13px;margin-top:8px}
+.footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+.copy-btn{background:#0ea5a0;color:white;padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+.note{margin-top:10px;color:#475569;font-size:13px}
+@media(max-width:600px){.form{flex-direction:column;align-items:stretch}.result{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <div class="logo">123</div>
+      <div>
+        <div class="title">تبدیل عدد به حروف — فارسی</div>
+        <div class="small">عدد را وارد کن، روی تبدیل بزن. از اعداد منفی و اعشاری پشتیبانی می‌شود.</div>
+      </div>
+    </div>
+
+    <div class="form">
+      <input id="numInput" type="text" placeholder="مثال: 12345 یا -12.34 یا 1000000">
+      <button id="convertBtn" class="btn">تبدیل کن</button>
+      <button id="clearBtn" class="btn secondary">ریست</button>
+    </div>
+
+    <div class="result" id="result" style="display:none;">
+      <div class="res-text" id="resultText"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+        <button class="copy-btn" id="copyBtn">کپی</button>
+        <div class="small">نسخهٔ ساده—قابل توسعه</div>
+      </div>
+    </div>
+
+    <div class="note">
+      قوانین تبدیل: اعداد صحیح تا تریلیون پشتیبانی می‌شوند. قسمت اعشاری به‌صورت «ممیز» و سپس هر رقم جداگانه خوانده می‌شود (مثلاً <strong>۱۲.۳۴ → دوازده ممیز سه چهار</strong>).
+    </div>
+
+    <div class="footer">می‌خوای خروجی انگلیسی هم اضافه کنم؟ بگو تا بسازم.</div>
+  </div>
+</div>
+
+<script>
+const units = ['صفر','یک','دو','سه','چهار','پنج','شش','هفت','هشت','نه'];
+const teens = ['ده','یازده','دوازده','سیزده','چهارده','پانزده','شانزده','هفده','هجده','نوزده'];
+const tens = ['','ده','بیست','سی','چهل','پنجاه','شصت','هفتاد','هشتاد','نود'];
+const hundreds = ['','صد','دویست','سیصد','چهارصد','پانصد','ششصد','هفتصد','هشتصد','نهصد'];
+const scales = ['','هزار','میلیون','میلیارد','تریلیون'];
+
+function threeDigitsToWords(n) {
+  n = Number(n);
+  if (n === 0) return '';
+  let words = [];
+  const h = Math.floor(n / 100);
+  const rem = n % 100;
+  if (h) words.push(hundreds[h]);
+  if (rem >= 10 && rem < 20) {
+    words.push(teens[rem - 10]);
+  } else {
+    const t = Math.floor(rem / 10);
+    const u = rem % 10;
+    if (t) words.push(tens[t]);
+    if (u) words.push(units[u]);
+  }
+  return words.join(' و ');
+}
+
+function integerToWords(numStr) {
+  // handle zero
+  if (/^0+$/.test(numStr)) return 'صفر';
+  // split into groups of 3 from right
+  let parts = [];
+  let i = numStr.length;
+  while (i > 0) {
+    const start = Math.max(0, i-3);
+    parts.push(numStr.substring(start, i));
+    i -= 3;
+  }
+  let words = [];
+  for (let idx = 0; idx < parts.length; idx++) {
+    const part = Number(parts[idx]);
+    if (part === 0) continue;
+    const w = threeDigitsToWords(part);
+    const scaleName = scales[idx] || '';
+    if (scaleName) {
+      if (w) words.unshift(w + (scaleName ? ' ' + scaleName : ''));
+      else words.unshift(scaleName);
+    } else {
+      words.unshift(w);
+    }
+  }
+  // join with ' و '
+  return words.join(' و ').replace(/\s+/g,' ').trim();
+}
+
+function normalizePersianDigits(s) {
+  // replace Arabic-Indic digits with Latin digits if present
+  const persianNums = { '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9',
+                        '٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9' };
+  return s.replace(/[۰-۹٠-٩]/g, function(d){ return persianNums[d] || d; });
+}
+
+function numberToWordsFa(input) {
+  if (typeof input !== 'string') input = String(input);
+  input = input.trim();
+  if (input === '') return '';
+  input = normalizePersianDigits(input);
+
+  // handle sign
+  let sign = '';
+  if (input[0] === '+') input = input.slice(1);
+  if (input[0] === '-') { sign = 'منفی '; input = input.slice(1); }
+
+  // validate
+  if (!/^[0-9]+(?:\.[0-9]+)?$/.test(input)) return 'ورودی نامعتبر است';
+
+  if (input.indexOf('.') >= 0) {
+    const [intPart, fracPart] = input.split('.');
+    const intWords = integerToWords(intPart);
+    if (fracPart.length === 0) return sign + intWords;
+    // spell fractional digits individually
+    const fracDigits = fracPart.split('').map(d => units[Number(d)]).join(' ');
+    return sign + (intWords === 'صفر' ? 'صفر' : intWords) + ' ممیز ' + fracDigits;
+  } else {
+    const intWords = integerToWords(input);
+    return sign + intWords;
+  }
+}
+
+// UI
+const numInput = document.getElementById('numInput');
+const convertBtn = document.getElementById('convertBtn');
+const clearBtn = document.getElementById('clearBtn');
+const result = document.getElementById('result');
+const resultText = document.getElementById('resultText');
+const copyBtn = document.getElementById('copyBtn');
+
+convertBtn.addEventListener('click', () => {
+  const val = numInput.value;
+  const out = numberToWordsFa(val);
+  resultText.textContent = out;
+  result.style.display = 'flex';
+});
+
+clearBtn.addEventListener('click', () => {
+  numInput.value = '';
+  result.style.display = 'none';
+  resultText.textContent = '';
+});
+
+copyBtn.addEventListener('click', async () => {
+  const text = resultText.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    copyBtn.textContent = 'کپی شد!';
+    setTimeout(()=>copyBtn.textContent='کپی',1200);
+  } catch (e) {
+    alert('کپی ناموفق بود: ' + e);
+  }
+});
+</script>
+</body>
+</html>

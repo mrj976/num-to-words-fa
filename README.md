@@ -11,3 +11,5 @@ Usage:
 - Open `index.html` in a browser and enter a number, then click "تبدیل کن".
 
 License: MIT
+
+این پروژه توسط [اسپید فالوور](https://speedfollower.com/) آماده شده است.
